@@ -1660,10 +1660,10 @@ public class OneBotCommand
         }
         var sb = new StringBuilder();
         foreach (var server in XocMatSetting.Instance.Servers)
-        { 
+        {
             var cmd = "/" + string.Join(" ", args.Parameters);
             var api = await server.Command(cmd);
-            sb.AppendLine("$\"[{server.Name}]命令执行结果:");
+            sb.AppendLine($"[{server.Name}]命令执行结果:");
             sb.AppendLine(api.Status ? string.Join("\n", api.Params) : "无法连接到服务器！");
         }
         await args.EventArgs.Reply(sb.ToString().Trim());
