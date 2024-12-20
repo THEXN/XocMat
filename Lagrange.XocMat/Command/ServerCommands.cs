@@ -53,7 +53,7 @@ public class ServerCommands
         var curr = Currency.Query(args.User.GroupID, args.User.Id);
         if (curr == null || curr.Num < count * TerrariaPrize.Instance.Fess)
         {
-            await args.Server.PrivateMsg(args.UserName, $"你的星币不足抽取{count}次", Color.Red);
+            await args.Server.PrivateMsg(args.UserName, $"你的落叶不足抽取{count}次", Color.Red);
             return;
         }
         Currency.Del(args.User.GroupID, args.User.Id, count * TerrariaPrize.Instance.Fess);
@@ -101,7 +101,7 @@ public class ServerCommands
                     }
                     else
                     {
-                        await args.Server.PrivateMsg(args.UserName, "星币不足!", Color.GreenYellow);
+                        await args.Server.PrivateMsg(args.UserName, "落叶不足!", Color.GreenYellow);
                     }
                 }
                 else
@@ -129,7 +129,7 @@ public class ServerCommands
                     }
                     else
                     {
-                        await args.Server.PrivateMsg(args.UserName, "星币不足!", Color.GreenYellow);
+                        await args.Server.PrivateMsg(args.UserName, "落叶不足!", Color.GreenYellow);
                     }
                 }
                 else

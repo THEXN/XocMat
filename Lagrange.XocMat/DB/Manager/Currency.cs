@@ -27,7 +27,7 @@ public class Currency : RecordBase<Currency>
 
     public static Currency? Del(long groupid, long id, long num)
     {
-        var usercurr = Query(groupid, id) ?? throw new Exception("用户没有星币可以扣除!");
+        var usercurr = Query(groupid, id) ?? throw new Exception("用户没有落叶可以扣除!");
         usercurr.Num -= num;
         context.Update(usercurr);
         return usercurr;

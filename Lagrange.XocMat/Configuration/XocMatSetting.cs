@@ -57,7 +57,7 @@ public class XocMatSetting : JsonConfigBase<XocMatSetting>
     public int SignMinCurrency { get; init; } = 400;
 
     [JsonProperty("货币名称")]
-    public string Currency { get; init; } = "星币";
+    public string Currency { get; init; } = "落叶";
 
     [JsonProperty("服务器列表")]
     public List<TerrariaServer> Servers { get; init; } = [];
