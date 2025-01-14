@@ -195,7 +195,7 @@ public class OneBotCommand
             sb.AppendLine($"|{id}|{item.Name}|{item.Num}|{item.Price}|");
             id++;
         }
-        await args.EventArgs.Reply(MessageBuilder.Group(args.EventArgs.Chain.GroupUin!.Value).MarkdownImage(sb.ToString()));
+        await args.MessageBuilder.MarkdownImage(sb.ToString()).Reply();
     }
     #endregion
 
@@ -341,7 +341,7 @@ public class OneBotCommand
             sb.AppendLine($"|{id}|{item.Name}|{item.Max}|{item.Min}|{item.Probability}％|");
             id++;
         }
-        await args.EventArgs.Reply(MessageBuilder.Group(args.EventArgs.Chain.GroupUin!.Value).MarkdownImage(sb.ToString()));
+        await args.MessageBuilder.MarkdownImage(sb.ToString()).Reply();
     }
     #endregion
 
@@ -453,14 +453,13 @@ public class OneBotCommand
             long num = rand.NextInt64(XocMatSetting.Instance.SignMinCurrency, XocMatSetting.Instance.SignMaxCurrency);
             var result = DB.Manager.Sign.SingIn(args.EventArgs.Chain.GroupUin!.Value, args.EventArgs.Chain.GroupMemberInfo!.Uin);
             var currency = DB.Manager.Currency.Add(args.EventArgs.Chain.GroupUin!.Value, args.EventArgs.Chain.GroupMemberInfo!.Uin, num);
-            var build = MessageBuilder.Group(args.EventArgs.Chain.GroupUin!.Value)
+            await args.MessageBuilder
                 .Image(await HttpUtils.HttpGetByte($"http://q.qlogo.cn/headimg_dl?dst_uin={args.EventArgs.Chain.GroupMemberInfo!.Uin}&spec=640&img_type=png"))
                 .Text($"签到成功！\n")
                 .Text($"[签到时长]：{result.Date}\n")
                 .Text($"[获得{XocMatSetting.Instance.Currency}]：{num}\n")
-                .Text($"[{XocMatSetting.Instance.Currency}总数]：{currency.Num}");
-
-            await args.EventArgs.Reply(build);
+                .Text($"[{XocMatSetting.Instance.Currency}总数]：{currency.Num}")
+                .Reply();
         }
         catch (Exception e)
         {
@@ -1660,10 +1659,10 @@ public class OneBotCommand
         }
         var sb = new StringBuilder();
         foreach (var server in XocMatSetting.Instance.Servers)
-        { 
+        {
             var cmd = "/" + string.Join(" ", args.Parameters);
             var api = await server.Command(cmd);
-            sb.AppendLine("$\"[{server.Name}]命令执行结果:");
+            sb.AppendLine($"[{server.Name}]命令执行结果:");
             sb.AppendLine(api.Status ? string.Join("\n", api.Params) : "无法连接到服务器！");
         }
         await args.EventArgs.Reply(sb.ToString().Trim());

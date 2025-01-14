@@ -1,7 +1,6 @@
 ﻿using Lagrange.XocMat.Attributes;
 using Lagrange.XocMat.Terraria;
 using Newtonsoft.Json;
-using System.Text.Json.Serialization;
 
 namespace Lagrange.XocMat.Configuration;
 
@@ -63,8 +62,6 @@ public class XocMatSetting : JsonConfigBase<XocMatSetting>
     public List<TerrariaServer> Servers { get; init; } = [];
 
     protected override string Filename => "XocMat";
-
-    protected override string? ReloadMsg => "[XocMat]: config reload successfully!\n";
 
     public TerrariaServer? GetServer(string name)
     {

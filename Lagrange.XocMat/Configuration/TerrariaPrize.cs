@@ -3,7 +3,6 @@
 using Lagrange.XocMat.Attributes;
 using Lagrange.XocMat.Internal.Terraria;
 using Newtonsoft.Json;
-using System.Text.Json.Serialization;
 
 namespace Lagrange.XocMat.Configuration;
 
@@ -17,8 +16,6 @@ public class TerrariaPrize : JsonConfigBase<TerrariaPrize>
     public List<Prize> Pool = [];
 
     protected override string Filename => "Prize";
-
-    protected override string? ReloadMsg => "[TerrariaPirze]: config reload successfully!\n";
 
     public Prize? Next()
     {
