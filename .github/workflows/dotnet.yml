@@ -13,13 +13,13 @@ jobs:
       matrix:
         runtimeIdentifier: [ win-x64, linux-x64]
 
-    name: 构建插件
+    name: 构建 Lagrange.XocMat
     steps:
       - uses: actions/checkout@v4
         with:
            submodules: 'recursive'
            
-      - name: 初始化.NET 8
+      - name: 初始化.NET 9
         uses: actions/setup-dotnet@v4
         env:
           DOTNET_CLI_UI_LANGUAGE: zh-CN
@@ -28,19 +28,18 @@ jobs:
           
       - name: 构建插件
         run: |
-          dotnet publish Lagrange.XocMat/Lagrange.XocMat.csproj --no-self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=none -p:RuntimeIdentifier=${{ matrix.runtimeIdentifier }} --framework net9.0
-          
-      - name: 安装 zip
-        run: sudo apt-get install zip
+           dotnet publish Lagrange.XocMat/Lagrange.XocMat.csproj --no-self-contained -p:PublishSingleFile=true -p:RuntimeIdentifier=${{ matrix.runtimeIdentifier }} --framework net9.0           
+      #- name: 安装 zip
+      #  run: sudo apt-get install zip
 
-      - name: 生成压缩包
-        run: zip -r -j Lagrange.XocMat_${{ matrix.runtimeIdentifier }}_9.0.zip Lagrange.XocMat/bin/Release/net9.0/${{ matrix.runtimeIdentifier }}/publish/
+      #- name: 生成压缩包
+      #  run: zip -r Lagrange.XocMat_${{ matrix.runtimeIdentifier }}_9.0.zip Lagrange.XocMat/bin/Release/net9.0/${{ matrix.runtimeIdentifier }}/publish/
       
       - name: 上传临时文件
         uses: actions/upload-artifact@v4
         with:
           name: Lagrange.XocMat_${{ matrix.runtimeIdentifier }}_9.0
-          path: Lagrange.XocMat_${{ matrix.runtimeIdentifier }}_9.0.zip
+          path: Lagrange.XocMat/bin/Release/net9.0/${{ matrix.runtimeIdentifier }}/publish/
           
   LatestRelease:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
@@ -56,19 +55,18 @@ jobs:
           
       - name: 更新发布标签
         run: |
-          git tag -f V1.0.0.0
-          git push -f origin V1.0.0.0
-      - name: 下载临时插文件
-        uses: actions/download-artifact@v4
+          git tag -f V1.2.0
+          git push -f origin V1.2.0
+
+      - name: 下载临时文件
+        uses: dawidd6/action-download-artifact@v8
         with:
-            path: bin
-            merge-multiple: true
-      - name: 拆分压缩包
-        run: ls -R bin
+          path: bin
+          skip_unpack: true
       - name: 发布Release
         uses: ncipollo/release-action@v1
         with:
-          tag: V1.0.0.0
+          tag: V1.2.0
           name: "最新版本"
           body: ""
           artifacts: |

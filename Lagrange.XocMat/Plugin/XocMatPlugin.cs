@@ -1,22 +1,18 @@
 ﻿using Lagrange.Core;
-using Lagrange.XocMat.Attributes;
-using Lagrange.XocMat.Commands;
 using Microsoft.Extensions.Logging;
 
 namespace Lagrange.XocMat.Plugin;
 
 public abstract class XocMatPlugin : IDisposable
 {
-    protected XocMatPlugin(ILogger logger, CommandManager commandManager, BotContext bot)
+    protected List<Command.Command> AssemblyCommands = [];
+
+    protected XocMatPlugin(ILogger logger, BotContext bot)
     {
         Logger = logger;
-        CommandManager = commandManager;
         BotContext = bot;
-        AutoLoad();
     }
     public ILogger Logger { get; }
-
-    public CommandManager CommandManager { get; }
 
     public BotContext BotContext { get; }
 
@@ -56,27 +52,33 @@ public abstract class XocMatPlugin : IDisposable
         }
     }
 
+    protected virtual void DisableCommand()
+    { 
+        foreach(var command in AssemblyCommands)
+        {
+            XocMatAPI.CommandManager.Commands.Remove(command);
+        }
+    }
+
     public int Order { get; set; } = 1;
 
-    public abstract void Initialize();
+    public virtual void Initialize()
+    { 
+        AutoLoad();
+    }
 
-    protected abstract void Dispose(bool dispose);
+    protected virtual void Dispose(bool dispose)
+    { 
+        if(dispose)
+            DisableCommand();
+    }
 
-    internal void AutoLoad()
+    protected virtual void AutoLoad()
     {
-        foreach (var type in GetType().Assembly.GetTypes())
+        AssemblyCommands = XocMatAPI.CommandManager.RegisterCommand(GetType().Assembly);
+        foreach(var command in AssemblyCommands)
         {
-            if (type.IsDefined(typeof(ConfigSeries), false))
-            {
-                var method = type.BaseType!.GetMethod("Load") ?? throw new MissingMethodException($"method 'Load()' is missing inside the lazy loaded config class '{Name}'");
-                var name = method.Invoke(null, []);
-                Logger.LogInformation($"[{Name}] config registered: {name}");
-            }
-            else if (type.IsDefined(typeof(CommandSeries), false))
-            {
-                CommandManager.RegisterCommand(type);
-            }
-
+            Logger.LogInformation($"Command {command.Alias.First()} Register Successfully!");
         }
     }
 

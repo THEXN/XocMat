@@ -1,6 +1,6 @@
-using Lagrange.Core.Common;
+﻿using Lagrange.Core.Common;
 using Lagrange.Core.Common.Interface;
-using Lagrange.XocMat.Commands;
+using Lagrange.XocMat.Command;
 using Lagrange.XocMat.Event;
 using Lagrange.XocMat.Internal;
 using Lagrange.XocMat.Net;
@@ -23,7 +23,7 @@ public static class HostApplicationBuilderExtension
             .AddSingleton<OneBotSigner>() // Signer
             .AddSingleton((services) => // BotConfig
             {
-                var configuration = services.GetRequiredService<IConfiguration>();
+                IConfiguration configuration = services.GetRequiredService<IConfiguration>();
 
                 return new BotConfig
                 {
@@ -42,10 +42,10 @@ public static class HostApplicationBuilderExtension
             })
             .AddSingleton((services) => // Device
             {
-                var configuration = services.GetRequiredService<IConfiguration>();
+                IConfiguration configuration = services.GetRequiredService<IConfiguration>();
                 string path = configuration["ConfigPath:DeviceInfo"] ?? "device.json";
 
-                var device = File.Exists(path)
+                BotDeviceInfo device = File.Exists(path)
                     ? JsonSerializer.Deserialize<BotDeviceInfo>(File.ReadAllText(path)) ?? BotDeviceInfo.GenerateInfo()
                     : BotDeviceInfo.GenerateInfo();
 
@@ -56,7 +56,7 @@ public static class HostApplicationBuilderExtension
             })
             .AddSingleton((services) => // Keystore
             {
-                var configuration = services.GetRequiredService<IConfiguration>();
+                IConfiguration configuration = services.GetRequiredService<IConfiguration>();
                 string path = configuration["ConfigPath:Keystore"] ?? "keystore.json";
 
                 return File.Exists(path)

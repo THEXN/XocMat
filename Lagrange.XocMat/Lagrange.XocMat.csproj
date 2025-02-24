@@ -4,18 +4,25 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-	<Version>1.1.5</Version>
+	<Version>1.2.0</Version>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+	<ItemGroup>
+		<Content Include="Resources\**" Exclude="**\Json\**">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<Pack>false</Pack>
+		</Content>
+	</ItemGroup>
+
   <ItemGroup>
-    <None Remove="Resources\appsettings.json" />
-    <None Remove="Resources\TerrariaID.json" />
+    <None Remove="Resources\Json\appsettings.json" />
+    <None Remove="Resources\Json\TerrariaID.json" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Resources\appsettings.json" />
-    <EmbeddedResource Include="Resources\TerrariaID.json" />
+    <EmbeddedResource Include="Resources\Json\appsettings.json" />
+    <EmbeddedResource Include="Resources\Json\TerrariaID.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,7 +33,7 @@
     <PackageReference Include="MySql.Data" Version="9.2.0" />
     <PackageReference Include="Net.Codecrete.QrCodeGenerator" Version="2.0.6" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="PuppeteerSharp" Version="20.1.1" />
+    <PackageReference Include="PuppeteerSharp" Version="20.1.2" />
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.6" />
@@ -36,21 +43,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Lagrange.Core\Lagrange.Core\Lagrange.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Properties\Resources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

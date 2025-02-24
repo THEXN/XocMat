@@ -1,10 +1,10 @@
+ï»¿using System.Data;
 using Lagrange.XocMat.Configuration;
 using Lagrange.XocMat.Exceptions;
 using Lagrange.XocMat.Extensions;
 using Lagrange.XocMat.Internal.Database;
 using LinqToDB;
 using LinqToDB.Mapping;
-using System.Data;
 
 namespace Lagrange.XocMat.DB.Manager;
 
@@ -110,17 +110,17 @@ public class Group : RecordBase<Group>
     {
         get
         {
-            var cur = this;
-            var traversed = new List<Group>();
-            HashSet<string> all = new();
+            Group? cur = this;
+            List<Group> traversed = [];
+            HashSet<string> all = [];
             while (cur != null)
             {
-                foreach (var perm in cur.permissions)
+                foreach (string perm in cur.permissions)
                 {
                     all.Add(perm);
                 }
 
-                foreach (var perm in cur.negatedpermissions)
+                foreach (string perm in cur.negatedpermissions)
                 {
                     all.Remove(perm);
                 }
@@ -139,7 +139,7 @@ public class Group : RecordBase<Group>
     public virtual bool HasPermission(string permission)
     {
         bool negated = false;
-        if (string.IsNullOrEmpty(permission) || RealHasPermission(permission, ref negated) && !negated)
+        if (string.IsNullOrEmpty(permission) || (RealHasPermission(permission, ref negated) && !negated))
         {
             return true;
         }
@@ -165,8 +165,8 @@ public class Group : RecordBase<Group>
         if (string.IsNullOrEmpty(permission))
             return true;
 
-        var cur = this;
-        var traversed = new List<Group>();
+        Group? cur = this;
+        List<Group> traversed = [];
         while (cur != null)
         {
             if (cur.negatedpermissions.Contains(permission))
@@ -192,21 +192,21 @@ public class Group : RecordBase<Group>
         if (context.Records.Any(i => i.Name == groupName))
             if (HasGroup(groupName))
             {
-                throw new GroupException("´Ë×éÒÑ¾­´æÔÚÁË£¬ÎŞ·¨ÖØ¸´Ìí¼Ó!");
+                throw new GroupException("æ­¤ç»„å·²ç»å­˜åœ¨äº†ï¼Œæ— æ³•é‡å¤æ·»åŠ !");
             }
-        var exec = context.Insert(new Group()
+        int exec = context.Insert(new Group()
         {
             Name = groupName,
             Permission = perms,
             parent = XocMatSetting.Instance.DefaultPermGroup
         });
         if (exec != 1)
-            throw new GroupException("Ìí¼ÓÖÁÊı¾İ¿âÊ§°Ü!");
+            throw new GroupException("æ·»åŠ è‡³æ•°æ®åº“å¤±è´¥!");
     }
 
     public static void AddPerm(string groupName, string perm)
     {
-        var group = GetGroup(groupName) ?? throw new GroupException($"×é {groupName} ²»´æÔÚ!");
+        Group group = GetGroup(groupName) ?? throw new GroupException($"ç»„ {groupName} ä¸å­˜åœ¨!");
         if (!group.permissions.Contains(perm))
         {
             group.AddPermission(perm);
@@ -214,13 +214,13 @@ public class Group : RecordBase<Group>
         }
         else
         {
-            throw new GroupException("È¨ÏŞÒÑ´æÔÚÇë²»ÒªÖØ¸´Ìí¼Ó!!");
+            throw new GroupException("æƒé™å·²å­˜åœ¨è¯·ä¸è¦é‡å¤æ·»åŠ !!");
         }
     }
 
     public static void ReParentGroup(string groupName, string Parent)
     {
-        var group = GetGroup(groupName) ?? throw new GroupException($"×é {groupName} ²»´æÔÚ!");
+        Group group = GetGroup(groupName) ?? throw new GroupException($"ç»„ {groupName} ä¸å­˜åœ¨!");
         group.Parent = GetGroupNullDefault(Parent);
         context.Update(group);
     }
@@ -233,7 +233,7 @@ public class Group : RecordBase<Group>
 
     public static void RemovePerm(string groupName, string perm)
     {
-        var group = GetGroup(groupName) ?? throw new GroupException("É¾³ıÈ¨ÏŞÖ¸ÏòµÄÄ¿±ê×é²»´æÔÚ!");
+        Group group = GetGroup(groupName) ?? throw new GroupException("åˆ é™¤æƒé™æŒ‡å‘çš„ç›®æ ‡ç»„ä¸å­˜åœ¨!");
         if (group.permissions.Contains(perm))
         {
             group.RemovePermission(perm);
@@ -241,23 +241,23 @@ public class Group : RecordBase<Group>
         }
         else
         {
-            throw new GroupException("´Ë×éÃ»ÓĞ¸ÃÈ¨ÏŞÎŞĞèÉ¾³ı!");
+            throw new GroupException("æ­¤ç»„æ²¡æœ‰è¯¥æƒé™æ— éœ€åˆ é™¤!");
         }
     }
 
     public static void RemoveGroup(string groupName)
     {
         if (!HasGroup(groupName))
-            throw new GroupException($"×é {groupName} ²»´æÔÚ!");
+            throw new GroupException($"ç»„ {groupName} ä¸å­˜åœ¨!");
         if (context.Records.Delete(x => x.Name == groupName) != 1)
         {
-            throw new GroupException("¸üĞÂÖÁÊı¾İ¿âÊ§°Ü!");
+            throw new GroupException("æ›´æ–°è‡³æ•°æ®åº“å¤±è´¥!");
         }
     }
 
     public static List<string> GetGroupPerms(string groupName)
     {
-        return context.Records.FirstOrDefault(i => i.Name == groupName)?.permissions ?? new List<string>();
+        return context.Records.FirstOrDefault(i => i.Name == groupName)?.permissions ?? [];
     }
 
     public static bool HasPermssions(string groupName, string perm)
