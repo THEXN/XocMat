@@ -143,7 +143,7 @@ public class CommandManager
         if (comm == null)
             return;
         GroupCommandArgs commandArgs = new(bot, comm.Name, args, comm.Prefix, comm.CmdParams, comm.CommandLine, comm.Account);
-        if (comm.Command.Permissions.Any(comm.Account.HasPermission))
+        if (comm.Command.Permissions.Length == 0 || comm.Command.Permissions.Any(comm.Account.HasPermission))
         {
             if (!await OperatHandler.GroupCommand(commandArgs))
             {
@@ -155,10 +155,9 @@ public class CommandManager
                 }
                 catch (Exception e)
                 {
-                    await args.Reply("命令执行失败，请查看日志"); 
+                    await args.Reply("命令执行失败，请查看日志",true); 
                     Logger.LogError(e, $"Group Command:{args.Chain.GroupUin} {args.Chain.GroupMemberInfo!.MemberName}({args.Chain.GroupMemberInfo!.Uin}) 使用命令: {comm.Prefix}{comm.Name} 时发生错误");
                 }
-
             }
             return;
         }
@@ -184,7 +183,7 @@ public class CommandManager
                 }
                 catch(Exception e)
                 {
-                    await args.Reply("命令执行失败，请查看日志");
+                    await args.Reply("命令执行失败，请查看日志", true);
                     Logger.LogError(e, $"Friend Command: {args.Chain.FriendInfo!.Nickname}({args.Chain.FriendUin}) 使用命令: {comm.Prefix}{comm.Name} 时发生错误");
                 }
             }
