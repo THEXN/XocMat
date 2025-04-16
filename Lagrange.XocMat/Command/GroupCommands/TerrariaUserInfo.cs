@@ -1,8 +1,10 @@
-﻿using System.Text;
-using Lagrange.XocMat.Command.CommandArgs;
+﻿using Lagrange.XocMat.Command.CommandArgs;
 using Lagrange.XocMat.Configuration;
 using Lagrange.XocMat.Extensions;
 using Lagrange.XocMat.Internal;
+using Lagrange.XocMat.Terraria.Protocol.Action.Response;
+using Lagrange.XocMat.Terraria.Protocol.Internet;
+using Lagrange.XocMat.Utility.Images;
 using Microsoft.Extensions.Logging;
 
 namespace Lagrange.XocMat.Command.GroupCommands;
@@ -25,24 +27,27 @@ public class TerrariaUserInfo : Command
         if (args.Parameters.Count == 1)
         {
             string userName = args.Parameters[0];
-            Internal.Socket.Action.Response.QueryAccount info = await server.QueryAccount(userName);
-            Internal.Socket.Internet.Account? account = info.Accounts.Find(x => x.Name == userName);
+            QueryAccount info = await server.QueryAccount(userName);
+            Account? account = info.Accounts.Find(x => x.Name == userName);
             if (!info.Status || account == null)
             {
                 await args.Event.Reply(info.Message, true);
                 return;
             }
-
-            StringBuilder sb = new StringBuilder($"查询`{userName}\n");
-            sb.AppendLine($"ID: {account.ID}");
-            sb.AppendLine($"Group: {account.Group}");
-            sb.AppendLine($"LastLogin: {account.LastLoginTime}");
-            sb.AppendLine($"Registered: {account.RegisterTime}");
-            await args.Event.Reply(sb.ToString().Trim());
+            var builder = new ProfileItemBuilder()
+                .SetMemberUin(args.MemberUin)
+                .SetTitle($"[{server.Name}][{userName}]账户信息")
+                .AddItem("ID", account.ID.ToString())
+                .AddItem("Group", account.Group)
+                .AddItem("LastLogin", account.LastLoginTime.ToString())
+                .AddItem("Registered", account.RegisterTime.ToString());
+            await args.MessageBuilder
+                .Image(builder.Build())
+                .Reply();
         }
         else
         {
-            await args.Event.Reply($"语法错误，正确语法:\n{args.CommamdPrefix}{args.Name} [名称]");
+            await args.Event.Reply($"语法错误，正确语法:\n{args.CommandPrefix}{args.Name} [名称]");
             return;
         }
     }

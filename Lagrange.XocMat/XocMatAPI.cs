@@ -1,20 +1,24 @@
 ﻿using System.Data;
 using Lagrange.Core;
+using Lagrange.Core.Message;
 using Lagrange.XocMat.Command;
 using Lagrange.XocMat.Configuration;
+using Lagrange.XocMat.DB.Manager;
+using Lagrange.XocMat.Entity;
 using Lagrange.XocMat.Event;
+using Lagrange.XocMat.Extensions;
+using Lagrange.XocMat.Net;
 using Lagrange.XocMat.Plugin;
 using Lagrange.XocMat.Utility;
+using MessagePack;
+using MessagePack.Resolvers;
 using Microsoft.Data.Sqlite;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using MySql.Data.MySqlClient;
 
 
 namespace Lagrange.XocMat;
 
-public class XocMatAPI : BackgroundService
+public class XocMatAPI : IHostedService
 {
     public static BotContext BotContext { get; private set; } = null!;
 
@@ -24,54 +28,53 @@ public class XocMatAPI : BackgroundService
 
     public static string SAVE_PATH => Path.Combine(PATH, "Config");
 
-    public static TerrariaMsgReceiveHandler TerrariaMsgReceive => XocMatApp.Instance.Services.GetRequiredService<TerrariaMsgReceiveHandler>();
+    public static SocketAdapter SocketAdapter { get; private set; } = null!;
 
-    public static CommandManager CommandManager => XocMatApp.Instance.Services.GetRequiredService<CommandManager>();
+    public static CommandManager CommandManager { get; private set; } = null!;
 
-    public static PluginLoader PluginLoader => XocMatApp.Instance.Services.GetRequiredService<PluginLoader>();
+    public static WebSocketServer WsServer { get; private set; } = null!;
 
-    public XocMatAPI(BotContext botContext, ILogger<XocMatAPI> logger)
+    public static PluginLoader PluginLoader { get; private set; } = null!;
+
+    public static SystemMonitor SystemMonitor { get; private set; } = null!;
+
+    public XocMatAPI(BotContext botContext, PluginLoader pluginLoader, CommandManager cmdManager, WebSocketServer wsServer, SocketAdapter socketAdapter)
     {
         BotContext = botContext;
+        PluginLoader = pluginLoader;
+        WsServer = wsServer;
+        CommandManager = cmdManager;
+        SocketAdapter = socketAdapter;
     }
 
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
-        if (!Directory.Exists(SAVE_PATH))
-            Directory.CreateDirectory(SAVE_PATH);
-        SystemHelper.KillChrome();
-        //初始化数据库
-        InitDb();
-        return Task.CompletedTask;
+        PluginLoader.UnLoad();
+        SystemMonitor.Dispose();
+        BotContext.Invoker.OnFriendMessageReceived -= CommandManager.Adapter;
+        WsServer.OnMessage -= SocketAdapter.Adapter;
+        await WsServer.StopAsync(cancellationToken);
     }
 
-    private static void InitDb()
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
-        switch (XocMatSetting.Instance.DbType.ToLower())
+        if (!Directory.Exists(SAVE_PATH)) Directory.CreateDirectory(SAVE_PATH);
+        string sql = Path.Combine(PATH, XocMatSetting.Instance.DbPath);
+        if (Path.GetDirectoryName(sql) is string path)
         {
-            case "sqlite":
-                {
-                    string sql = Path.Combine(PATH, XocMatSetting.Instance.DbPath);
-                    if (Path.GetDirectoryName(sql) is string path)
-                    {
-                        Directory.CreateDirectory(path);
-                        DB = new SqliteConnection(string.Format("Data Source={0}", sql));
-                        break;
-                    }
-                    throw new ArgumentNullException("无法找到数据库路径!");
-                }
-            case "mysql":
-                {
-                    DB = new MySqlConnection()
-                    {
-                        ConnectionString = string.Format("Server={0};Port={1};Database={2};Uid={3};Pwd={4}",
-                        XocMatSetting.Instance.DbHost, XocMatSetting.Instance.DbPort, XocMatSetting.Instance.DbName, XocMatSetting.Instance.DbUserName, XocMatSetting.Instance.DbPassword)
-                    };
-                    break;
-                }
-            default:
-                throw new TypeLoadException("无法使用类型:" + XocMatSetting.Instance.DbType);
-
+            Directory.CreateDirectory(path);
+            DB = new SqliteConnection(string.Format("Data Source={0}", sql));
         }
+        PluginLoader.Load();
+        SystemMonitor = new SystemMonitor();
+        BotContext.Invoker.OnFriendMessageReceived += CommandManager.Adapter;
+        BotContext.Invoker.OnGroupMessageReceived += (bot, e) =>
+        {
+            CommandManager.Adapter(bot, e);
+            SocketAdapter.GroupMessageForwardAdapter(bot, e);
+            MessageRecord.Insert(e.Chain);
+        };
+        WsServer.OnMessage += SocketAdapter.Adapter;
+        await WsServer.Start(cancellationToken);
     }
 }

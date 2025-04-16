@@ -1,9 +1,9 @@
-﻿using System.Text;
-using Lagrange.XocMat.Command.CommandArgs;
+﻿using Lagrange.XocMat.Command.CommandArgs;
 using Lagrange.XocMat.Configuration;
 using Lagrange.XocMat.DB.Manager;
 using Lagrange.XocMat.Extensions;
 using Lagrange.XocMat.Internal;
+using Lagrange.XocMat.Utility.Images;
 using Microsoft.Extensions.Logging;
 
 namespace Lagrange.XocMat.Command.GroupCommands;
@@ -24,12 +24,16 @@ public class RegisterList : Command
                 await args.Event.Reply("注册列表空空如也!");
                 return;
             }
-            StringBuilder sb = new StringBuilder($"[{server.Name}]注册列表\n");
+            var builder = new ProfileItemBuilder()
+                .SetMemberUin(args.MemberUin)
+                .SetTitle($"[{server.Name}]注册列表");
             foreach (TerrariaUser user in users)
             {
-                sb.AppendLine($"{user.Name} => {user.Id}");
+                builder.AddItem(user.Name, user.Id.ToString());
             }
-            await args.Event.Reply(sb.ToString().Trim());
+            await args.MessageBuilder
+                .Image(builder.Build())
+                .Reply();
         }
         else
         {

@@ -5,6 +5,7 @@ using Lagrange.XocMat.DB.Manager;
 using Lagrange.XocMat.Exceptions;
 using Lagrange.XocMat.Extensions;
 using Lagrange.XocMat.Internal;
+using Lagrange.XocMat.Terraria.Protocol.Action.Response;
 using Lagrange.XocMat.Utility;
 using Microsoft.Extensions.Logging;
 
@@ -44,19 +45,19 @@ public class Register : Command
             try
             {
                 TerrariaUser.Add(args.MemberUin, args.GroupUin, server.Name, args.Parameters[0], pass);
-                Internal.Socket.Action.Response.BaseActionResponse api = await server.Register(args.Parameters[0], pass);
+                BaseActionResponse api = await server.Register(args.Parameters[0], pass);
                 Core.Message.MessageBuilder build = args.MessageBuilder;
                 if (api.Status)
                 {
 
-                     MailHelper.Builder(XocMatSetting.Instance.MailHost,XocMatSetting.Instance.SenderPwd)
-                        .AddTarget($"{args.MemberUin}@qq.com")
-                        .SetTile($"{server.Name}服务器注册密码")
-                        .SetBody(CommandUtils.GenerateMailBody($"{server.Name}服务器注册密码", args.MemberUin, args.MemberCard, "请查看你的注册密码", pass))
-                        .EnableHtmlBody(true)
-                        .SetSender(XocMatSetting.Instance.SenderMail)
-                        .Send()
-                        .Dispose();
+                    MailHelper.Builder(XocMatSetting.Instance.MailHost, XocMatSetting.Instance.SenderPwd)
+                       .AddTarget($"{args.MemberUin}@qq.com")
+                       .SetTile($"{server.Name}服务器注册密码")
+                       .SetBody(CommandUtils.GenerateMailBody($"{server.Name}服务器注册密码", args.MemberUin, args.MemberCard, "请查看你的注册密码", pass))
+                       .EnableHtmlBody(true)
+                       .SetSender(XocMatSetting.Instance.SenderMail)
+                       .Send()
+                       .Dispose();
                     build.Text($"注册成功!" +
                         $"\n注册服务器: {server.Name}" +
                         $"\n注册名称: {args.Parameters[0]}" +
@@ -80,7 +81,7 @@ public class Register : Command
         }
         else
         {
-            await args.Event.Reply($"语法错误,正确语法:\n{args.CommamdPrefix}{args.Name} [名称]");
+            await args.Event.Reply($"语法错误,正确语法:\n{args.CommandPrefix}{args.Name} [名称]");
         }
     }
 

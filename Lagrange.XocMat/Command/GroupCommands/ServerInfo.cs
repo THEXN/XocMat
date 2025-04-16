@@ -2,6 +2,8 @@
 using Lagrange.XocMat.Configuration;
 using Lagrange.XocMat.Extensions;
 using Lagrange.XocMat.Internal;
+using Lagrange.XocMat.Terraria.Protocol.Action.Response;
+using Lagrange.XocMat.Terraria.Protocol.Internet;
 using Lagrange.XocMat.Utility.Images;
 using Microsoft.Extensions.Logging;
 
@@ -17,21 +19,21 @@ public class ServerInfo : Command
     {
         if (UserLocation.Instance.TryGetServer(args.MemberUin, args.GroupUin, out Terraria.TerrariaServer? server) && server != null)
         {
-            Internal.Socket.Action.Response.ServerStatus status = await server.ServerStatus();
+            ServerStatus status = await server.ServerStatus();
             if (!status.Status)
             {
                 await args.Event.Reply("无法连接服务器!", true);
                 return;
             }
-            TableBuilder tableBuilder = new TableBuilder();
-            tableBuilder.SetTitle($"{server.Name}插件列表");
-            tableBuilder.SetTitleBottom(true);
-            tableBuilder.AddRow("插件名称", "插件说明", "插件作者");
-            foreach (Internal.Socket.Internet.PluginInfo plugin in status.Plugins)
+            var tableBuilder = TableBuilder.Create()
+                .SetHeader("插件名称", "插件说明", "插件作者")
+                .SetTitle("插件列表")
+                .SetMemberUin(args.MemberUin);
+            foreach (PluginInfo plugin in status.Plugins)
             {
                 tableBuilder.AddRow(plugin.Name, plugin.Description, plugin.Author);
             }
-            await args.MessageBuilder.Image(await tableBuilder.BuildAsync()).Reply();
+            await args.MessageBuilder.Image(tableBuilder.Builder()).Reply();
         }
         else
         {

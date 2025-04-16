@@ -2,10 +2,9 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using Lagrange.XocMat.Enumerates;
-using Lagrange.XocMat.Internal.Socket.Action;
-using Lagrange.XocMat.Internal.Socket.Action.Receive;
-using Lagrange.XocMat.Internal.Socket.Action.Response;
-using Lagrange.XocMat.Net;
+using Lagrange.XocMat.Terraria.Protocol.Action;
+using Lagrange.XocMat.Terraria.Protocol.Action.Receive;
+using Lagrange.XocMat.Terraria.Protocol.Action.Response;
 using Newtonsoft.Json;
 using ProtoBuf;
 
@@ -68,9 +67,12 @@ public class TerrariaServer
     public HashSet<uint> ForwardGroups { get; set; } = [];
 
     [JsonIgnore]
+    public string ConnectIdentity { get; set; } = string.Empty;
+
+    [JsonIgnore]
     public TaskCompletionSource<byte[]>? WaitFile { get; set; }
 
-    public async ValueTask<ServerCommand> Command(string cmd)
+    public async Task<ServerCommand> Command(string cmd)
     {
         ServerCommandArgs args = new ServerCommandArgs()
         {
@@ -80,7 +82,7 @@ public class TerrariaServer
         return await RequestApi<ServerCommandArgs, ServerCommand>(args);
     }
 
-    public async ValueTask<ServerOnline> ServerOnline()
+    public async Task<ServerOnline> ServerOnline()
     {
         BaseAction args = new BaseAction()
         {
@@ -89,7 +91,7 @@ public class TerrariaServer
         return await RequestApi<BaseAction, ServerOnline>(args);
     }
 
-    public async ValueTask<BaseActionResponse> Register(string Name, string Password)
+    public async Task<BaseActionResponse> Register(string Name, string Password)
     {
         RegisterAccountArgs args = new RegisterAccountArgs()
         {
@@ -101,7 +103,7 @@ public class TerrariaServer
         return await RequestApi<RegisterAccountArgs, BaseActionResponse>(args);
     }
 
-    public async ValueTask<GameProgress> QueryServerProgress()
+    public async Task<GameProgress> QueryServerProgress()
     {
         BaseAction args = new BaseAction()
         {
@@ -110,7 +112,7 @@ public class TerrariaServer
         return await RequestApi<BaseAction, GameProgress>(args);
     }
 
-    public async ValueTask<PlayerInventory> PlayerInventory(string name)
+    public async Task<PlayerInventory> PlayerInventory(string name)
     {
         QueryPlayerInventoryArgs args = new QueryPlayerInventoryArgs()
         {
@@ -120,7 +122,7 @@ public class TerrariaServer
         return await RequestApi<QueryPlayerInventoryArgs, PlayerInventory>(args);
     }
 
-    public async ValueTask<MapImage> MapImage(ImageType type)
+    public async Task<MapImage> MapImage(ImageType type)
     {
         MapImageArgs args = new MapImageArgs()
         {
@@ -130,7 +132,7 @@ public class TerrariaServer
         return await RequestApi<MapImageArgs, MapImage>(args);
     }
 
-    public async ValueTask<BaseActionResponse> Broadcast(string text, byte R, byte G, byte B)
+    public async Task<BaseActionResponse> Broadcast(string text, byte R, byte G, byte B)
     {
         BroadcastArgs args = new BroadcastArgs()
         {
@@ -141,12 +143,12 @@ public class TerrariaServer
         return await RequestApi<BroadcastArgs, BaseActionResponse>(args);
     }
 
-    public async ValueTask<BaseActionResponse> Broadcast(string text, Color color)
+    public async Task<BaseActionResponse> Broadcast(string text, Color color)
     {
         return await Broadcast(text, color.R, color.G, color.B);
     }
 
-    public async ValueTask<BaseActionResponse> PrivateMsg(string name, string text, byte R, byte G, byte B)
+    public async Task<BaseActionResponse> PrivateMsg(string name, string text, byte R, byte G, byte B)
     {
         PrivatMsgArgs args = new PrivatMsgArgs()
         {
@@ -158,12 +160,12 @@ public class TerrariaServer
         return await RequestApi<PrivatMsgArgs, BaseActionResponse>(args);
     }
 
-    public async ValueTask<BaseActionResponse> PrivateMsg(string name, string text, Color color)
+    public async Task<BaseActionResponse> PrivateMsg(string name, string text, Color color)
     {
         return await PrivateMsg(name, text, color.R, color.G, color.B);
     }
 
-    public async ValueTask<PlayerOnlineRank> OnlineRank()
+    public async Task<PlayerOnlineRank> OnlineRank()
     {
         BaseAction args = new BaseAction()
         {
@@ -172,7 +174,7 @@ public class TerrariaServer
         return await RequestApi<BaseAction, PlayerOnlineRank>(args);
     }
 
-    public async ValueTask<BaseActionResponse> ReplyConnectStatus(SocketConnentType status = SocketConnentType.Success)
+    public async Task<BaseActionResponse> ReplyConnectStatus(SocketConnentType status = SocketConnentType.Success)
     {
         SocketConnectStatusArgs args = new SocketConnectStatusArgs()
         {
@@ -182,7 +184,7 @@ public class TerrariaServer
         return await RequestApi<SocketConnectStatusArgs, BaseActionResponse>(args);
     }
 
-    public async ValueTask<DeadRank> DeadRank()
+    public async Task<DeadRank> DeadRank()
     {
         BaseAction args = new BaseAction()
         {
@@ -191,7 +193,7 @@ public class TerrariaServer
         return await RequestApi<BaseAction, DeadRank>(args);
     }
 
-    public async ValueTask<UpLoadWorldFile> GetWorldFile()
+    public async Task<UpLoadWorldFile> GetWorldFile()
     {
         BaseAction args = new BaseAction()
         {
@@ -200,7 +202,7 @@ public class TerrariaServer
         return await RequestApi<BaseAction, UpLoadWorldFile>(args);
     }
 
-    public async ValueTask<ServerStatus> ServerStatus()
+    public async Task<ServerStatus> ServerStatus()
     {
         BaseAction args = new BaseAction()
         {
@@ -209,7 +211,7 @@ public class TerrariaServer
         return await RequestApi<BaseAction, ServerStatus>(args);
     }
 
-    public async ValueTask<BaseActionResponse> ResetPlayerPwd(string name, string pwd)
+    public async Task<BaseActionResponse> ResetPlayerPwd(string name, string pwd)
     {
         PlayerPasswordResetArgs args = new PlayerPasswordResetArgs()
         {
@@ -220,7 +222,7 @@ public class TerrariaServer
         return await RequestApi<PlayerPasswordResetArgs, BaseActionResponse>(args);
     }
 
-    public async ValueTask<ExportPlayer> ExportPlayer(List<string> names)
+    public async Task<ExportPlayer> ExportPlayer(List<string> names)
     {
         ExportPlayerArgs args = new ExportPlayerArgs()
         {
@@ -230,7 +232,7 @@ public class TerrariaServer
         return await RequestApi<ExportPlayerArgs, ExportPlayer>(args);
     }
 
-    public async ValueTask<QueryAccount> QueryAccount(string? name = null)
+    public async Task<QueryAccount> QueryAccount(string? name = null)
     {
         QueryAccountArgs args = new QueryAccountArgs()
         {
@@ -240,7 +242,7 @@ public class TerrariaServer
         return await RequestApi<QueryAccountArgs, QueryAccount>(args);
     }
 
-    public async ValueTask<BaseActionResponse> ReStartServer(Dictionary<string, string> startArgs)
+    public async Task<BaseActionResponse> ReStartServer(Dictionary<string, string> startArgs)
     {
         ReStartServerArgs args = new ReStartServerArgs()
         {
@@ -250,7 +252,7 @@ public class TerrariaServer
         return await RequestApi<ReStartServerArgs, BaseActionResponse>(args);
     }
 
-    public async ValueTask<PlayerStrikeBoss> GetStrikeBoss()
+    public async Task<PlayerStrikeBoss> GetStrikeBoss()
     {
         BaseAction args = new BaseAction()
         {
@@ -300,7 +302,7 @@ public class TerrariaServer
         return false;
     }
 
-    public async ValueTask<BaseActionResponse> Reset(Dictionary<string, string> startArgs, Action<RestServerType> OnWait)
+    public async Task<BaseActionResponse> Reset(Dictionary<string, string> startArgs, Action<RestServerType> OnWait)
     {
         ResetServerArgs args = new ResetServerArgs()
         {
@@ -337,10 +339,10 @@ public class TerrariaServer
         return await RequestApi<ResetServerArgs, BaseActionResponse>(args);
     }
 
-    public async ValueTask<TResult> RequestApi<In, TResult>(In ApiParam, TimeSpan? timeout = null) where In : BaseAction where TResult : BaseActionResponse, new()
+    public async Task<TResult> RequestApi<In, TResult>(In ApiParam, TimeSpan? timeout = null) where In : BaseAction where TResult : BaseActionResponse, new()
     {
-        WebSocketServer.ConnectionContext? Client = WebSocketConnectManager.GetConnent(Name);
-        if (Client != null && Client.WsContext.WebSocket.State == System.Net.WebSockets.WebSocketState.Open)
+        var client = XocMatAPI.WsServer.GetConnect(ConnectIdentity);
+        if (client != null && client.WsContext.WebSocket.State == System.Net.WebSockets.WebSocketState.Open)
         {
             ApiParam.Echo = Guid.NewGuid().ToString();
             ApiParam.ServerName = Name;
@@ -348,8 +350,8 @@ public class TerrariaServer
             ApiParam.Token = Token;
             using MemoryStream stream = new();
             Serializer.Serialize(stream, ApiParam);
-            await WebSocketConnectManager.Send(stream.ToArray(), Client.ID);
-            return await XocMatAPI.TerrariaMsgReceive.GetResponse<TResult>(ApiParam.Echo, timeout) ?? new()
+            await XocMatAPI.WsServer.SendBytesAsync(stream.ToArray(), ConnectIdentity);
+            return await XocMatAPI.SocketAdapter.GetResponse<TResult>(ApiParam.Echo, timeout) ?? new()
             {
                 Status = false,
                 ServerName = Name,

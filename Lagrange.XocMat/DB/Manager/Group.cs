@@ -1,8 +1,8 @@
 ﻿using System.Data;
 using Lagrange.XocMat.Configuration;
+using Lagrange.XocMat.Entity.Database;
 using Lagrange.XocMat.Exceptions;
 using Lagrange.XocMat.Extensions;
-using Lagrange.XocMat.Internal.Database;
 using LinqToDB;
 using LinqToDB.Mapping;
 
@@ -185,6 +185,8 @@ public class Group : RecordBase<Group>
         }
         return false;
     }
+
+    public static List<Group> GetGroups() => [.. context.Records];
 
 
     public static void AddGroup(string groupName, string perms = "")

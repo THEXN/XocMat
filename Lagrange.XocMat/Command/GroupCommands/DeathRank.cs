@@ -1,8 +1,9 @@
-﻿using System.Text;
-using Lagrange.XocMat.Command.CommandArgs;
+﻿using Lagrange.XocMat.Command.CommandArgs;
 using Lagrange.XocMat.Configuration;
 using Lagrange.XocMat.Extensions;
 using Lagrange.XocMat.Internal;
+using Lagrange.XocMat.Terraria.Protocol.Action.Response;
+using Lagrange.XocMat.Utility.Images;
 using Microsoft.Extensions.Logging;
 
 namespace Lagrange.XocMat.Command.GroupCommands;
@@ -17,7 +18,7 @@ public class DeathRank : Command
     {
         if (UserLocation.Instance.TryGetServer(args.MemberUin, args.GroupUin, out Terraria.TerrariaServer? server) && server != null)
         {
-            Internal.Socket.Action.Response.DeadRank api = await server.DeadRank();
+            DeadRank api = await server.DeadRank();
             Core.Message.MessageBuilder body = args.MessageBuilder;
             if (api.Status)
             {
@@ -26,13 +27,17 @@ public class DeathRank : Command
                     await args.Event.Reply("当前还没有数据记录", true);
                     return;
                 }
-                StringBuilder sb = new StringBuilder($"[{server.Name}]死亡排行:\n");
+                var builder = new ProfileItemBuilder()
+                    .SetMemberUin(args.MemberUin)
+                    .SetTitle("死亡排行");
                 IOrderedEnumerable<KeyValuePair<string, int>> rank = api.Rank.OrderByDescending(x => x.Value);
                 foreach ((string name, int count) in rank)
                 {
-                    sb.AppendLine($"[{name}]死亡次数: {count}");
+                    builder.AddItem(name, count.ToString());
                 }
-                body.Text(sb.ToString().Trim());
+                await args.MessageBuilder
+                    .Image(builder.Build())
+                    .Reply();
             }
             else
             {

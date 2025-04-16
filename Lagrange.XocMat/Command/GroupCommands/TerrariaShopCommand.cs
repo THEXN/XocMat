@@ -18,15 +18,16 @@ public class TerrariaShopCommand : Command
 
     public override async Task InvokeAsync(GroupCommandArgs args, ILogger log)
     {
-        TableBuilder tableBuilder = new TableBuilder()
+        var tableBuilder = TableBuilder.Create()
+            .SetHeader("序号", "商品ID", "商品名称", "数量", "价格")
             .SetTitle("泰拉商店")
-            .AddRow("序号","商品ID", "商品名称", "数量", "价格");
+            .SetMemberUin(args.MemberUin);
         int id = 1;
         foreach (Internal.Terraria.Shop item in TerrariaShop.Instance.TrShop)
         {
             tableBuilder.AddRow(id.ToString(), item.ID.ToString(), item.Name, item.Num.ToString(), item.Price.ToString());
             id++;
         }
-        await args.MessageBuilder.Image(await tableBuilder.BuildAsync()).Reply();
+        await args.MessageBuilder.Image(tableBuilder.Builder()).Reply();
     }
 }

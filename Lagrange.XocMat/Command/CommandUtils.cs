@@ -1,7 +1,7 @@
 ﻿using Lagrange.Core.Message;
 using Lagrange.XocMat.Configuration;
 using Lagrange.XocMat.DB.Manager;
-using Lagrange.XocMat.Utility;
+using Lagrange.XocMat.Utility.Images;
 
 namespace Lagrange.XocMat.Command;
 
@@ -18,7 +18,7 @@ internal static class CommandUtils
     }
 
 
-    public static async Task<MessageBuilder> GetAccountInfo(uint groupid, uint uin, string groupName)
+    public static MessageBuilder GetAccountInfo(uint groupid, uint uin, string groupName)
     {
         uint userid = uin;
         string serverName = UserLocation.Instance.TryGetServer(userid, groupid, out Terraria.TerrariaServer? server) ? server?.Name ?? "NULL" : "NULL";
@@ -28,14 +28,17 @@ internal static class CommandUtils
         long sign = signInfo != null ? signInfo.Date : 0;
         Currency? currencyInfo = Currency.Query(userid);
         long currency = currencyInfo != null ? currencyInfo.Num : 0;
+
+        var builder = new ProfileItemBuilder()
+            .SetTitle("账户信息")
+            .SetMemberUin(userid)
+            .AddItem($"QQ账号", uin.ToString())
+            .AddItem($"签到时长", sign.ToString())
+            .AddItem($"{XocMatSetting.Instance.Currency}数量", currency.ToString())
+            .AddItem($"拥有权限", groupName)
+            .AddItem($"当前服务器", serverName);
         return MessageBuilder.Group(groupid)
-            .Image(await HttpUtils.GetByteAsync($"http://q.qlogo.cn/headimg_dl?dst_uin={uin}&spec=640&img_type=png"))
-            .Text($"[QQ账号]:{userid}\n")
-            .Text($"[签到时长]:{sign}\n")
-            .Text($"[{XocMatSetting.Instance.Currency}数量]:{currency}\n")
-            .Text($"[拥有权限]:{groupName}\n")
-            .Text($"[绑定角色]:{bindName}\n")
-            .Text($"[所在服务器]:{serverName}");
+            .Image(builder.Build());
     }
 
     public static string GenerateMailBody(string tile, uint uin, string name, string body, string pw)

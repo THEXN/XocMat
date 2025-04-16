@@ -6,21 +6,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Lagrange.XocMat.Plugin;
 
-public class PluginLoader
+public class PluginLoader(CommandManager cmdManager, BotContext botContext, ILogger<PluginLoader> logger)
 {
-    public CommandManager CommandManager { get; }
+    public CommandManager CommandManager { get; } = cmdManager;
 
-    public BotContext BotContext { get; }
+    public BotContext BotContext { get; } = botContext;
 
-    public ILogger<PluginLoader> Logger { get; }
-
-    public PluginLoader(CommandManager cmdManager, BotContext botContext, ILogger<PluginLoader> logger)
-    {
-        CommandManager = cmdManager;
-        BotContext = botContext;
-        Logger = logger;
-        Load();
-    }
+    public ILogger<PluginLoader> Logger { get; } = logger;
 
     public PluginContext PluginContext { get; private set; } = new(Guid.NewGuid().ToString());
 
@@ -37,7 +29,7 @@ public class PluginLoader
             {
                 MethodInfo method = type.BaseType!.GetMethod("Load") ?? throw new MissingMethodException($"method 'Load()' is missing inside the lazy loaded config class");
                 object? name = method.Invoke(null, []);
-                Logger.LogInformation($"config registered: {name}");
+                Logger.LogInformation("[{Time}] [PluginLoader] Config Registered Successfully: {name}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), name);
             }
         }
         DirectoryInfo directoryInfo = new(PATH);
@@ -54,32 +46,4 @@ public class PluginLoader
         GC.Collect();
         GC.WaitForPendingFinalizers();
     }
-
-    internal Assembly? Resolve(object? sender, ResolveEventArgs args)
-    {
-        string dirpath = Path.Combine(XocMatAPI.PATH, "bin");
-        if (!Directory.Exists(dirpath))
-            Directory.CreateDirectory(dirpath);
-        string fileName = args.Name.Split(',')[0];
-        string path = Path.Combine(dirpath, fileName + ".dll");
-        try
-        {
-            if (File.Exists(path))
-            {
-                Assembly assembly;
-
-                assembly = Assembly.Load(File.ReadAllBytes(path));
-
-                return assembly;
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(
-                string.Format("Error on resolving assembly \"{0}.dll\":\n{1}", fileName, ex));
-        }
-        return null; ;
-    }
-
-
 }

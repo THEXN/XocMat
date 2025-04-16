@@ -9,21 +9,21 @@ namespace Lagrange.XocMat.Net;
 public class WebSocketServer(ILogger<WebSocketServer> logger)
 {
 
-    public event Action<string>? OnConnect;
+    public event Func<string, Task>? OnConnect;
 
-    public event Action<string, byte[]>? OnMessage;
+    public event Func<string, byte[], Task>? OnMessage;
 
-    public event Action<string>? OnClose;
+    public event Func<string, Task>? OnClose;
 
     private readonly HttpListener _listener = new();
 
     private readonly ConcurrentDictionary<string, ConnectionContext> _connections = [];
 
-    public async ValueTask Start(CancellationToken token)
+    public async Task Start(CancellationToken token)
     {
         _listener.Prefixes.Add($"http://*:{XocMatSetting.Instance.SocketProt}/");
         _listener.Start();
-        logger.LogInformation($"Websocket Start prot:{XocMatSetting.Instance.SocketProt}");
+        logger.LogInformation("[{Time}][WebsockServer] Start Server Prot:{Prot}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), XocMatSetting.Instance.SocketProt);
         try
         {
             while (true)
@@ -34,14 +34,11 @@ public class WebSocketServer(ILogger<WebSocketServer> logger)
         }
         catch (Exception e) when (e is not OperationCanceledException)
         {
-            logger.LogError("WebSocket Error " + e.Message);
+            logger.LogError("[{Time}] [WebsockServer] Server Start Error: {Message}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), e.Message);
         }
     }
 
-    public ConnectionContext? GetConnect(string id)
-    {
-        return !_connections.TryGetValue(id, out ConnectionContext? connection) ? null : connection;
-    }
+    public ConnectionContext? GetConnect(string id) => _connections.TryGetValue(id, out var context) ? context : null;
 
     private async Task HandleHttpListenerContext(HttpListenerContext context1, CancellationToken token)
     {
@@ -116,7 +113,7 @@ public class WebSocketServer(ILogger<WebSocketServer> logger)
             bool isCanceled = e is OperationCanceledException;
 
             WebSocketCloseStatus status = WebSocketCloseStatus.NormalClosure;
-            CancellationToken t = default(CancellationToken);
+            CancellationToken t = default;
             if (!isCanceled)
             {
                 status = WebSocketCloseStatus.InternalServerError;
@@ -133,7 +130,7 @@ public class WebSocketServer(ILogger<WebSocketServer> logger)
         }
     }
 
-    public async ValueTask DisconnectAsync(string identifier, WebSocketCloseStatus status, CancellationToken token)
+    public async ValueTask DisconnectAsync(string identifier, WebSocketCloseStatus status, CancellationToken token = default)
     {
         if (!_connections.TryRemove(identifier, out ConnectionContext? connection)) return;
 
@@ -146,7 +143,7 @@ public class WebSocketServer(ILogger<WebSocketServer> logger)
         }
         catch (Exception e) when (e is not OperationCanceledException)
         {
-            logger.LogError("WebSocket Server Close Error " + e.Message);
+            logger.LogError("[{Time}] [WebsockServer] Server Close Connect Error {Message}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), e.Message);
         }
         finally
         {
@@ -155,7 +152,7 @@ public class WebSocketServer(ILogger<WebSocketServer> logger)
         }
     }
 
-    public async ValueTask SendBytesAsync(byte[] payload, string identifier, CancellationToken token)
+    public async ValueTask SendBytesAsync(byte[] payload, string identifier, CancellationToken token = default)
     {
         if (!_connections.TryGetValue(identifier, out ConnectionContext? connection)) return;
 
@@ -169,6 +166,13 @@ public class WebSocketServer(ILogger<WebSocketServer> logger)
         {
             connection.SendSemaphoreSlim.Release();
         }
+    }
+
+    public async Task StopAsync(CancellationToken token = default)
+    {
+        var tasks = _connections.Values.Select(t => t.Tcs.Task).ToArray();
+        await Task.WhenAll(tasks);
+        _listener.Stop();
     }
 
 

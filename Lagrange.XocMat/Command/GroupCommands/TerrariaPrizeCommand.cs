@@ -17,16 +17,16 @@ public class TerrariaPrizeCommand : Command
 
     public override async Task InvokeAsync(GroupCommandArgs args, ILogger log)
     {
-        TableBuilder tableBuilder = new TableBuilder()
+        var tableBuilder = TableBuilder.Create()
+            .SetHeader("奖品ID", "奖品名称", "最大数量", "最小数量", "中奖概率")
             .SetTitle("泰拉奖池")
-            .AddRow("奖品ID", "奖品名称", "最大数量", "最小数量", "中奖概率");
+            .SetMemberUin(args.MemberUin);
         int id = 1;
         foreach (Internal.Terraria.Prize item in TerrariaPrize.Instance.Pool)
         {
             tableBuilder.AddRow(id.ToString(), item.Name, item.Max.ToString(), item.Min.ToString(), item.Probability.ToString());
             id++;
         }
-        Core.Message.MessageResult s = await args.MessageBuilder.Image(await tableBuilder.BuildAsync()).Reply();
-        Console.WriteLine(s.Result);
+        await args.MessageBuilder.Image(tableBuilder.Builder()).Reply();
     }
 }

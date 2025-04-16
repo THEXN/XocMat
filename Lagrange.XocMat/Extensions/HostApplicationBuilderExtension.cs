@@ -70,7 +70,9 @@ public static class HostApplicationBuilderExtension
                 services.GetRequiredService<BotKeystore>(),
                 services.GetRequiredService<BotAppInfo>()
             ))
-            .AddHostedService<LoginService>();
+            .AddHostedService<LoginService>()
+            .AddHostedService<XocMatAPI>()
+            .AddHostedService<TimingUtils>();
 
         return builder;
     }
@@ -78,13 +80,12 @@ public static class HostApplicationBuilderExtension
     public static HostApplicationBuilder ConfigureOneBot(this HostApplicationBuilder builder)
     {
         builder.Services.AddOptions()
-            .AddHostedService<XocMatAPI>()
             .AddSingleton<WebSocketServer>()
-            .AddSingleton<TShockReceive>()
-            .AddSingleton<TerrariaMsgReceiveHandler>()
+            .AddSingleton<SocketAdapter>()
             .AddSingleton<CommandManager>()
             .AddSingleton<PluginLoader>()
             .AddSingleton<LoggerFactory>()
+            .AddSingleton<TimingUtils>()
             .AddSingleton<MusicSigner>();
         return builder;
     }
