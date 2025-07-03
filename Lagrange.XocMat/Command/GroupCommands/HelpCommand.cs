@@ -1,9 +1,9 @@
-﻿using System.Reflection;
-using Lagrange.XocMat.Command.CommandArgs;
+﻿using Lagrange.XocMat.Command.CommandArgs;
 using Lagrange.XocMat.Extensions;
 using Lagrange.XocMat.Internal;
 using Lagrange.XocMat.Utility.Images;
 using Microsoft.Extensions.Logging;
+using System.Reflection;
 
 
 namespace Lagrange.XocMat.Command.GroupCommands;
@@ -20,6 +20,7 @@ public class HelpCommand : Command
     {
         var commands = XocMatAPI.CommandManager!.Commands
             .Where(i => IsMethodOverridden(i.GetType(), nameof(i.InvokeAsync), [typeof(GroupCommandArgs), typeof(ILogger)]));
+
         if (!commands.Any())
         {
             await args.Event.Reply("当前无指令可用!", true);
@@ -36,19 +37,6 @@ public class HelpCommand : Command
 
     public override async Task InvokeAsync(FriendCommandArgs args, ILogger log)
     {
-        //void Show(List<string> line)
-        //{
-        //    if (PaginationTools.TryParsePageNumber(args.Parameters, 0, args.Event, out int page))
-        //    {
-        //        PaginationTools.SendPage(args.Event, page, line, new PaginationTools.Settings()
-        //        {
-        //            MaxLinesPerPage = 15,
-        //            NothingToDisplayString = "当前没有指令可用",
-        //            HeaderFormat = "指令列表 ({0}/{1})：",
-        //            FooterFormat = $"输入 {args.CommamdPrefix}help {{0}} 查看更多"
-        //        });
-        //    }
-        //}
         var commands = XocMatAPI.CommandManager!.Commands
             .Where(i => IsMethodOverridden(i.GetType(), nameof(i.InvokeAsync), [typeof(FriendCommandArgs), typeof(ILogger)]));
         if (!commands.Any())
