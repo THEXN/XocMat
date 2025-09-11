@@ -24,6 +24,8 @@ public class OneBotPermissions
 
     public const string Sign = "onebot.sign";
 
+    public const string Kick = "onebot.kick";
+
     public const string ClearMemory = "onebot.memory.clear";
 
     public const string Jrrp = "onebot.join";
