@@ -15,12 +15,12 @@ jobs:
 
     name: 构建 Lagrange.XocMat
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
            submodules: 'recursive'
            
       - name: 初始化.NET 9
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         env:
           DOTNET_CLI_UI_LANGUAGE: zh-CN
         with:
@@ -44,7 +44,7 @@ jobs:
     permissions:
          contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
           
@@ -54,7 +54,7 @@ jobs:
           git push -f origin V1.3.1
 
       - name: 下载临时文件
-        uses: dawidd6/action-download-artifact@v9
+        uses: dawidd6/action-download-artifact@v11
         with:
           path: bin
           skip_unpack: true
