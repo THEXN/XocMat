@@ -39,7 +39,7 @@ public class TerrariaServer
     [JsonProperty("转发消息最大长度")]
     public int MsgMaxLength { get; set; } = 50;
 
-    [JsonProperty("注册名称仅中文")]
+    [JsonProperty("注册名称限制")]
     public bool RegisterNameLimit { get; set; } = true;
 
     [JsonProperty("是否开启商店")]
